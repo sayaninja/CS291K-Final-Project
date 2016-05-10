@@ -1,26 +1,50 @@
 import json
 import sys
 
-if len(sys.argv) != 2:
-    print 'Incorrect counter of arguments.'
-    exit()
+BUSINESS_DATA_FILE = "./dataset/yelp_academic_dataset_business.json"
+REVIEWS_DATA_FILE = "./dataset/yelp_academic_dataset_review.json"
 
-reviews_path = str(sys.argv[1])
+# Read in items from JSON file into array
+print("Importing data...")
+restaurants = []
+business_ids = []
+businessFile = open(BUSINESS_DATA_FILE, "r")
+for line in businessFile:
+    business = json.loads(line)
+    if ('Restaurants' in business["categories"]) and \
+                    business["review_count"] > 0:
+        # Delete unnecessary attributes to save space
+        del business["type"]
+        del business["name"]
+        del business["neighborhoods"]
+        del business["full_address"]
+        del business["city"]
+        del business["state"]
+        del business["longitude"]
+        del business["latitude"]
+        del business["open"]
+        del business["hours"]
+        del business["attributes"]
 
-business_ids = ['5UmKMjUEUNdYWqANhGckJw', 'UsFtqoBl7naz8AVUBZMjQQ']
+        # Add business to restaurant array
+        restaurants.append(business)
+        business_ids.append(business["business_id"])
+        continue
 
-def get_reviews(business_ids):
-    reviews = []
-    with open(reviews_path) as f:
-        for line in f:
-            review = json.loads(line)
-            if(review['business_id'] in business_ids):
-                del review["votes"]
-                del review["user_id"]
-                del review["date"]
-                del review["type"]
-                reviews.append(review)
-    # print reviews[0]
-    # print reviews[1]
+print("Imported " + str(len(restaurants)) + " restaurants")
+print(restaurants[0])
 
-get_reviews(business_ids)
+reviewFile = open(REVIEWS_DATA_FILE, "r")
+reviews = []
+reviewCount = 0
+with open(REVIEWS_DATA_FILE) as f:
+    for line in f:
+        review = json.loads(line)
+        if review['business_id'] in business_ids:
+            del review["votes"]
+            del review["user_id"]
+            del review["date"]
+            del review["type"]
+            reviews.append(review)
+            print("Added review for business: " + str(reviewCount))
+            reviewCount += 1
