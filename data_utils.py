@@ -1,23 +1,13 @@
 import json
-import numpy as np
 
 BUSINESS_DATA_FILE = "./dataset/yelp_academic_dataset_business.json"
 
-# Read in JSON file into array
+# Read in items from JSON file into array
 print("Importing data...")
-businesses = []
+restaurants = []
 file = open(BUSINESS_DATA_FILE, "r")
 for line in file:
-    businesses.append(json.loads(line))
-print("Imported " + str(len(businesses)) + " businesses")
-print(businesses[0]["categories"])
-
-# Subset the data. Remove non restaurant businesses.
-print
-print("Removing non-restaurants...")
-restaurants = []
-for business in businesses:
-    # Delete if not a restaurant
+    business = json.loads(line)
     if ('Restaurants' in business["categories"]) and \
                     business["review_count"] > 0:
         # Delete unnecessary attributes to save space
@@ -32,10 +22,12 @@ for business in businesses:
         del business["open"]
         del business["hours"]
         del business["attributes"]
+
+        # Add business to restaurant array
         restaurants.append(business)
         continue
-print(str(len(restaurants)) + " businesses are restaurants")
-del businesses # Free some memory
+
+print("Imported " + str(len(restaurants)) + " restaurants")
 
 # Get reviews for each business
 
