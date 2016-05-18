@@ -2,3 +2,4 @@ dataset/*
 *.iml
 .DS_Store
 .idea/*
+*.pyc
