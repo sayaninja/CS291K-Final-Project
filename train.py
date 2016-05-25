@@ -2,12 +2,17 @@ from data_utils import *
 
 print("Importing data...")
 
-reviews, stars = get_reviews()
-print(reviews[0])
+x, y, vocabulary, vocabulary_inv = load_data()
+print("x is ")
+print(x)
 
-# Later we deal with restaurants
-# restaurants = get_restaurants()
+print("y is ")
+print(y)
+
+print("vocabulary is ")
+print(vocabulary)
+
+print("vocabulary_inv is ")
+print(vocabulary_inv)
 
 print("Done importing.")
-
-
