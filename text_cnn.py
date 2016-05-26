@@ -4,6 +4,7 @@ import numpy as np
 class TextCNN(object):
     def __init__(self, sequence_length, num_classes, vocab_size,
                  embedding_size, filter_sizes, num_filters, l2_reg_lambda=0.0):
+
         # Initialize placeholders
         self.review_placeholder = tf.placeholder(tf.int32, [None, sequence_length], name="review_placeholder")
         self.stars_placeholder = tf.placeholder(tf.float32, [None, num_classes], name="stars_placeholder")
@@ -14,6 +15,7 @@ class TextCNN(object):
 
         # Embedding layer
         with tf.device('/cpu:0'), tf.name_scope("embedding"):
+
             # Randomly initialize W2 from uniform distribution
             W = tf.Variable(tf.random_uniform([vocab_size, embedding_size],
                                               -1.0, 1.0), name="W")
@@ -24,30 +26,16 @@ class TextCNN(object):
         outputs = []
         for i, filter_size in enumerate(filter_sizes):
             with tf.name_scope("foward_pass-%s" % filter_size):
+
                 # Convolution layer
                 filter_shape = [filter_size, embedding_size, 1, num_filters]
-                # Initialize W2 ad b2
-                W = tf.Variable(tf.truncated_normal(filter_shape,
-                                                    stddev=0.1), name="W")
-                b = tf.Variable(tf.constant(0.1, shape=[num_filters]),
-                                name="b")
-                conv = tf.nn.conv2d(self.embedded_chars_expanded,
-                                    W,
-                                    strides=[1, 1, 1, 1],
-                                    padding="VALID",
-                                    name="conv")
-
-                # ReLU activation layer
-                h = tf.nn.relu(tf.nn.bias_add(conv, b), name="relu")
+                W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
+                b = tf.Variable(tf.constant(0.1, shape=[num_filters]), name="b")
+                conv2d = self.conv2d(self.embedded_chars_expanded, W, b)
 
                 # Maxpooling layer
                 ksize = [1, sequence_length - filter_size + 1, 1, 1]
-                pool = tf.nn.max_pool(h,
-                                      ksize=ksize,
-                                      strides=[1, 1, 1, 1],
-                                      padding="VALID",
-                                      name="pool"
-                                      )
+                pool = self.max_pool(conv2d, ksize)
                 outputs.append(pool)
 
         # Fully connected layer 1
@@ -85,3 +73,10 @@ class TextCNN(object):
                                            tf.argmax(self.stars_placeholder, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"),
                                            name="accuracy")
+
+    # Helper functions
+    def conv2d(self, review, w, b):
+        return tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(review, w, strides=[1, 1, 1, 1], padding='VALID'), b))
+
+    def max_pool(self, review, ksize):
+        return tf.nn.max_pool(review, ksize=ksize, strides=[1, 1, 1, 1], padding='VALID')
