@@ -17,7 +17,8 @@ def get_reviews():
         del review["review_id"]
         del review["business_id"]
         reviews.append(clean_str(review["text"].strip()))
-        stars.append(review["stars"])
+        # print review["stars"]
+        stars.append(review["stars"] - 1)
     reviews = [s.split(" ") for s in reviews]
     return reviews, stars
 
@@ -91,3 +92,13 @@ def load_data():
     vocabulary, vocabulary_inv = build_vocab(reviews_padded)
     x, y = build_input_data(reviews_padded, stars, vocabulary)
     return x, y, vocabulary, vocabulary_inv
+
+def get_batches(data, batch_size=64, num_epochs=200):
+    data = np.array(data)
+    data_size = len(data)
+    num_batches_per_epoch = int(len(data)/batch_size) + 1
+    for epoch in range(num_epochs):
+        for batch_num in range(num_batches_per_epoch):
+            start_index = batch_num * batch_size
+            end_index = min((batch_num + 1) * batch_size, data_size)
+            yield data[start_index:end_index]
