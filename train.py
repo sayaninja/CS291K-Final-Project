@@ -15,6 +15,7 @@ filter_sizes = [3, 4, 5]
 num_filters = 128
 adam_opt = 1e-3
 keep_prob = 0.5
+l2_reg_lambda = 0.5
 
 # Get data
 shuffle_indices = np.random.permutation(np.arange(len(y)))
@@ -27,7 +28,6 @@ y_train, y_val = y_shuffled[:-num_validation], y_shuffled[-num_validation:]
 print("Vocabulary Size: {:d}".format(len(vocabulary)))
 print("Train/Dev split: {:d}/{:d}".format(len(y_train), num_validation))
 
-
 with tf.Graph().as_default():
     sess = tf.Session()
     with sess.as_default():
@@ -37,7 +37,8 @@ with tf.Graph().as_default():
                 vocab_size=len(vocabulary),
                 embedding_size=embedding_size,
                 filter_sizes=filter_sizes,
-                num_filters=num_filters)
+                num_filters=num_filters,
+                l2_reg_lambda=l2_reg_lambda)
 
         global_step = tf.Variable(0, name="global_step", trainable=False)
         optimizer = tf.train.AdamOptimizer(adam_opt)

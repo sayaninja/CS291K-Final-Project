@@ -1,10 +1,8 @@
 import tensorflow as tf
-import numpy as np
 
 class TextCNN(object):
     def __init__(self, sequence_length, num_classes, vocab_size,
                  embedding_size, filter_sizes, num_filters, l2_reg_lambda=0.0):
-
         # Initialize placeholders
         self.review_placeholder = tf.placeholder(tf.int32, [None, sequence_length], name="review_placeholder")
         self.stars_placeholder = tf.placeholder(tf.float32, [None, num_classes], name="stars_placeholder")
@@ -15,7 +13,6 @@ class TextCNN(object):
 
         # Embedding layer
         with tf.device('/cpu:0'), tf.name_scope("embedding"):
-
             # Randomly initialize W2 from uniform distribution
             W = tf.Variable(tf.random_uniform([vocab_size, embedding_size],
                                               -1.0, 1.0), name="W")
@@ -26,7 +23,6 @@ class TextCNN(object):
         outputs = []
         for i, filter_size in enumerate(filter_sizes):
             with tf.name_scope("foward_pass-%s" % filter_size):
-
                 # Convolution layer
                 filter_shape = [filter_size, embedding_size, 1, num_filters]
                 W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W")
