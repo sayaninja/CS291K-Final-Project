@@ -8,7 +8,7 @@ print("Done importing.")
 # Hyper parameters
 num_validation = 1000
 num_classes = 5
-num_epochs = 100
+num_epochs = 1000
 batch_size = 100
 embedding_size = 128
 filter_sizes = [3, 4, 5]
@@ -89,7 +89,7 @@ with tf.Graph().as_default():
         # Evaluate validation set
         print "\nValidation Data Evaluation..."
         step = 1
-        for step in range(num_validation):
+        for step in range(num_validation/batch_size):
             offset = (step * batch_size) % (y_val.shape[0] - batch_size)
 
             # Generate a minibatch
@@ -99,7 +99,6 @@ with tf.Graph().as_default():
             batch_labels_one_hot = np.zeros((batch_size, num_classes))
             batch_labels_one_hot[np.arange(batch_size), y_batch] = 1
             test_step(x_batch, batch_labels_one_hot)
-
         # Evaluate test set
         print "\nTest Data Evaluation..."
         # TODO
