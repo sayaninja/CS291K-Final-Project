@@ -8,18 +8,20 @@ RESTAURANTS_OUTPUT_FILE = "./dataset/restaurants.json"
 REVIEWS_OUTPUT_FILE = "./dataset/reviews.json"
 filename = "./dataset/temp.json"
 
-def get_reviews():
+def get_data():
     reviews = []
     stars = []
+    ids  = []
     file = open(filename, "r")
     for line in file:
         review = json.loads(line)
         del review["review_id"]
-        del review["business_id"]
+        # del review["business_id"]
         reviews.append(clean_str(review["text"].strip()))
         stars.append(review["stars"] - 1)
+        ids.append(review["business_id"])
     reviews = [s.split(" ") for s in reviews]
-    return reviews, stars
+    return reviews, stars, ids
 
 def get_restaurants():
     restaurants = []
@@ -77,17 +79,18 @@ def build_vocab(sentences):
     vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
     return [vocabulary, vocabulary_inv]
 
-def build_input_data(sentences, labels, vocabulary):
+def build_input_data(reviews_padded, stars, ids, vocabulary):
     """
     Maps sentencs and labels to vectors based on a vocabulary.
     """
-    x = np.array([[vocabulary[word] for word in sentence] for sentence in sentences])
-    y = np.array(labels)
-    return [x, y]
+    reviews = np.array([[vocabulary[word] for word in review] for review in reviews_padded])
+    stars = np.array(stars)
+    ids = np.array(ids)
+    return [reviews, stars, ids]
 
 def load_data():
-    reviews, stars = get_reviews()
+    reviews, stars, ids = get_data()
     reviews_padded = pad_reviews(reviews)
     vocabulary, vocabulary_inv = build_vocab(reviews_padded)
-    x, y = build_input_data(reviews_padded, stars, vocabulary)
-    return x, y, vocabulary, vocabulary_inv
+    reviews, stars, ids = build_input_data(reviews_padded, stars, ids, vocabulary)
+    return reviews, stars, ids, vocabulary, vocabulary_inv
