@@ -7,6 +7,7 @@ print("Done importing.")
 
 # Hyper parameters
 num_validation = 1000
+num_test = 1000
 num_classes = 5
 num_epochs = 1000
 batch_size = 100
@@ -22,11 +23,15 @@ shuffle_indices = np.random.permutation(np.arange(len(y)))
 x_shuffled = x[shuffle_indices]
 y_shuffled = y[shuffle_indices]
 
-x_train, x_val = x_shuffled[:-num_validation], x_shuffled[-num_validation:]
-y_train, y_val = y_shuffled[:-num_validation], y_shuffled[-num_validation:]
+x_train, x_val, x_test = x_shuffled[:-(num_validation + num_test)], \
+                         x_shuffled[-(num_validation + num_test): -num_test], \
+                         x_shuffled[-num_test:]
+y_train, y_val, y_test = y_shuffled[:-(num_validation + num_test)], \
+                         y_shuffled[-(num_validation + num_test): -num_test], \
+                         y_shuffled[-num_test:]
 
 print("Vocabulary Size: {:d}".format(len(vocabulary)))
-print("Train/Dev split: {:d}/{:d}".format(len(y_train), num_validation))
+print("Train/Dev/Test split: {:d}/{:d}/{:d}".format(len(y_train), num_validation, num_test))
 
 with tf.Graph().as_default():
     sess = tf.Session()
@@ -99,6 +104,17 @@ with tf.Graph().as_default():
             batch_labels_one_hot = np.zeros((batch_size, num_classes))
             batch_labels_one_hot[np.arange(batch_size), y_batch] = 1
             test_step(x_batch, batch_labels_one_hot)
+
         # Evaluate test set
         print "\nTest Data Evaluation..."
-        # TODO
+        step = 1
+        for step in range(num_test/batch_size):
+            offset = (step * batch_size) % (y_val.shape[0] - batch_size)
+
+            # Generate a minibatch
+            x_batch = x_test[offset:(offset + batch_size), :]
+            y_batch = y_test[offset:(offset + batch_size)]
+
+            batch_labels_one_hot = np.zeros((batch_size, num_classes))
+            batch_labels_one_hot[np.arange(batch_size), y_batch] = 1
+            test_step(x_batch, batch_labels_one_hot)
