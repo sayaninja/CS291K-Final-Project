@@ -1,12 +1,14 @@
 from data_utils import *
 from text_cnn import *
+import time
+from datetime import datetime
 
 # Hyper parameters
-num_validation = 39
-num_test = 10
+num_validation = 39 # 1000
+num_test = 10 # 1000
 num_classes = 5
-num_epochs = 100 # 1000
-batch_size = 100
+num_epochs = 10 # 1000
+batch_size = 100 # 150
 embedding_size = 128
 filter_sizes = [3, 4, 5]
 num_filters = 128
@@ -16,6 +18,7 @@ l2_reg_lambda = 0.5
 
 print("Importing data...")
 # Get all business IDs
+start_time = time.time()
 business_ids = get_business_ids()
 print("Found " + str(len(business_ids)) + " restaurants.")
 
@@ -30,8 +33,12 @@ train_ids, val_ids, test_ids = \
 # Get reviews from file
 x_train, y_train = get_reviews_and_stars(train_ids)
 x_val, y_val = get_reviews_and_stars(val_ids)
-print("Importing complete.")
+duration = time.time() - start_time
+
+print("Importing finished in {:.2f} seconds".format(duration))
+print
 print("Preprocessing data...")
+start_time = time.time()
 
 # Build vocabulary
 vocabulary, vocabulary_inv, review_length = build_vocab()
@@ -42,10 +49,13 @@ x_val_padded = pad_reviews(x_val, review_length)
 x_train = build_input_data(x_train_padded, vocabulary)
 x_val = build_input_data(x_val_padded, vocabulary)
 
-print("Prepocessing complete.")
+duration = time.time() - start_time
+
+print("Prepocessing finished in {:.2f} seconds".format(duration))
 print
 print("Vocabulary Size: {:d}".format(len(vocabulary)))
-print("Train/Dev/Test split: {:d}/{:d}/{:d}".format(len(y_train), num_validation, num_test))
+print("Train/Val/Test split: {:d}/{:d}/{:d}".format(
+    len(y_train), num_validation, num_test))
 
 # Build graph
 with tf.Graph().as_default():
@@ -69,6 +79,7 @@ with tf.Graph().as_default():
         sess.run(tf.initialize_all_variables())
 
         def train_step(x_batch, y_batch):
+            start_time = time.time()
             feed_dict = {
                 text_cnn.review_placeholder: x_batch,
                 text_cnn.stars_placeholder: y_batch,
@@ -77,10 +88,13 @@ with tf.Graph().as_default():
             _, step, loss, accuracy = sess.run(
                     [train_op, global_step, text_cnn.loss, text_cnn.accuracy],
                     feed_dict=feed_dict)
-            print("Step {}, loss {:g}, acc {:g}".format(step, loss, accuracy))
+            if step % 10 == 0:
+                duration = time.time() - start_time
+                print("Step {}, loss: {:g}, acc: {:g}, dur: {:.2f} sec".format(
+                    step, loss, accuracy, duration))
 
-
-        def test_step(x_batch, y_batch):
+        def val_step(x_batch, y_batch):
+            start_time = time.time()
             feed_dict = {
                 text_cnn.review_placeholder: x_batch,
                 text_cnn.stars_placeholder: y_batch,
@@ -89,7 +103,10 @@ with tf.Graph().as_default():
             _, step, loss, accuracy = sess.run(
                     [train_op, global_step, text_cnn.loss, text_cnn.accuracy],
                     feed_dict=feed_dict)
-            print("Step {}, loss {:g}, acc {:g}".format(step, loss, accuracy))
+            if step % 10 == 0:
+                duration = time.time() - start_time
+                print("Step {}, loss: {:g}, acc: {:g}, dur: {:.2f} sec".format(
+                    step, loss, accuracy, duration))
 
 
         # Start the training loop
@@ -118,12 +135,14 @@ with tf.Graph().as_default():
 
             batch_labels_one_hot = np.zeros((batch_size, num_classes))
             batch_labels_one_hot[np.arange(batch_size), y_batch] = 1
-            test_step(x_batch, batch_labels_one_hot)
+            val_step(x_batch, batch_labels_one_hot)
 
         # Evaluate test set
         print "\nTest Data Evaluation..."
         step = 1
+        correct = 0
         differences = []
+        start_time = time.time()
         for restaurant in test_ids:
             # Import reviews from file and preprocess
             x_test, y_test = get_reviews_and_stars(restaurant)
@@ -154,9 +173,18 @@ with tf.Graph().as_default():
             true_overall = round_rating(true_overall)
 
             differences.append(np.absolute(true_overall - overall_prediction))
+
+            if overall_prediction == true_overall:
+                correct += 1
+
             print("Step {}, predicted: {}, truth: {}".format(
                 step, overall_prediction, true_overall))
             step += 1
 
-# Take averages of the star predictions (average residual)
-print("Average residual: " + str(np.mean(differences)))
+        # Take averages of the star predictions (average residual)
+        duration = time.time() - start_time
+        accuracy = (float(correct) / float(num_test)) * 100
+        print
+        print("Testing completed in {:.2f} seconds".format(duration))
+        print("Average residual: " + str(np.mean(differences)))
+        print("Accuracy: {:.2f}%".format(accuracy))
