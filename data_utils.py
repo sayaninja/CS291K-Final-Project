@@ -21,14 +21,6 @@ def get_reviews():
     reviews = [s.split(" ") for s in reviews]
     return reviews, stars
 
-def get_restaurants():
-    restaurants = []
-    file = open(REVIEWS_OUTPUT_FILE, "r")
-    for line in file:
-        restaurant = json.loads(line)
-        restaurants.append(restaurant)
-    return restaurants
-
 def clean_str(string):
     """
     Tokenization/string cleaning for all datasets except for SST.
