@@ -30,7 +30,7 @@ As discussed in our presentation and report, our project consists of three exper
 2. Experiment B: Train on individual reviews; average individual predicted ratings to form a single predicted overall rating.
 3. Experiment C: For each restaurant, combine all of its reviews into one super-review and train on that; predict overall rating.
 
-Each experiment is in its own git branch: experiment_a, experiment_b, and experiment_c. To run, simply type `python train.py` in a command prompt. Importing and preprocessing the full dataset of 2.2 million reviews takes 40 minutes, so we created a subset of 20,000 reviews in the `temp.json` file for development purposes. This is the default data file used in the `data_utils.py` script.
+Each experiment is in its own git branch: experiment_a, experiment_b, and experiment_c. To run, simply checkout the desired branch and type `python train.py` in a command prompt. Importing and preprocessing the full dataset of 2.2 million reviews takes 40 minutes, so we created a subset of 20,000 reviews in the `temp.json` file for development purposes. This is the default data file used in the `data_utils.py` script.
 
 ## Project Files
 
@@ -40,4 +40,4 @@ Here is a description of the main files in this repository.
 * `text_cnn.py` - The convolutional neural network class.
 * `train.py` - The main function for running the neural network.
 * `Presentation.pptx` - The PowerPoint of our presentation. Made in Google Slides.
-* `Report.pdf`
+* `Report.pdf` - Paper report of our project.
