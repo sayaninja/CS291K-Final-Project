@@ -32,7 +32,11 @@ class TextCNN(object):
                 # Maxpooling layer
                 ksize = [1, sequence_length - filter_size + 1, 1, 1]
                 pool = self.max_pool(conv2d, ksize)
-                outputs.append(pool)
+
+                # Normalization layer (makes it worse!)
+                #norm = tf.nn.lrn(pool, depth_radius=num_filters)
+
+                #outputs.append(norm)
 
         # Fully connected layer 1
         num_filters_total = num_filters * len(filter_sizes)
@@ -43,7 +47,7 @@ class TextCNN(object):
         with tf.name_scope("dropout"):
             self.h_drop = tf.nn.dropout(self.h_pool_flat, self.dropout)
 
-        # Fully connected output layer 2
+        # Output
         with tf.name_scope("output"):
             # Initialize W3
             W = tf.get_variable("W",

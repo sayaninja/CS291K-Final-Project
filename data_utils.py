@@ -6,28 +6,41 @@ import numpy as np
 
 RESTAURANTS_OUTPUT_FILE = "./dataset/restaurants.json"
 REVIEWS_OUTPUT_FILE = "./dataset/reviews.json"
-filename = "./dataset/temp.json"
+filename = "./dataset/restaurant_reviews.json"
 
-def get_reviews():
+def get_business_ids():
+    '''
+    Scans through data file for all business IDs
+    '''
+    ids = []
+    file = open(filename, "r")
+    for line in file:
+        review = json.loads(line)
+        ids.append(review["business_id"])
+    file.close()
+
+    # Remove duplicates
+    ids = list(set(ids))
+    return np.array(ids)
+
+def get_reviews_and_stars(ids):
+    '''
+    Returns all reviews corresponding ratings for one restaurant
+    '''
     reviews = []
     stars = []
     file = open(filename, "r")
     for line in file:
         review = json.loads(line)
-        del review["review_id"]
-        del review["business_id"]
-        reviews.append(clean_str(review["text"].strip()))
-        stars.append(review["stars"] - 1)
+        if review["business_id"] in ids:
+            del review["review_id"]
+            # del review["business_id"]
+            reviews.append(clean_str(review["text"].strip()))
+            stars.append(review["stars"] - 1)  # Make 0-4
+    file.close()
     reviews = [s.split(" ") for s in reviews]
+    stars = np.array(stars)
     return reviews, stars
-
-def get_restaurants():
-    restaurants = []
-    file = open(REVIEWS_OUTPUT_FILE, "r")
-    for line in file:
-        restaurant = json.loads(line)
-        restaurants.append(restaurant)
-    return restaurants
 
 def clean_str(string):
     """
@@ -49,12 +62,11 @@ def clean_str(string):
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
 
-def pad_reviews(reviews, padding_word="<pad/>"):
+def pad_reviews(reviews, review_length, padding_word="<pad/>"):
     """
     Pads all sentences to the same length. The length is defined by the longest sentence.
     Returns padded sentences.
     """
-    review_length = max(len(x) for x in reviews)
     reviews_padded = []
     for i in range(len(reviews)):
         review = reviews[i]
@@ -63,31 +75,41 @@ def pad_reviews(reviews, padding_word="<pad/>"):
         reviews_padded.append(new_sentence)
     return reviews_padded
 
-def build_vocab(sentences):
+def build_vocab():
     """
     Builds a vocabulary mapping from word to index based on the sentences.
     Returns vocabulary mapping and inverse vocabulary mapping.
     """
+    reviews = []
+    file = open(filename, "r")
+    for line in file:
+        review = json.loads(line)
+        del review["review_id"]
+        reviews.append(clean_str(review["text"].strip()))
+    file.close()
+    reviews = [s.split(" ") for s in reviews]
+    review_length = max(len(x) for x in reviews)
+
+    reviews_padded = pad_reviews(reviews, review_length)
     # Build vocabulary
-    word_counts = Counter(it.chain(*sentences))
+    word_counts = Counter(it.chain(*reviews_padded))
     # Mapping from index to word
     vocabulary_inv = [x[0] for x in word_counts.most_common()]
     vocabulary_inv = list(sorted(vocabulary_inv))
     # Mapping from word to index
     vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
-    return [vocabulary, vocabulary_inv]
+    return [vocabulary, vocabulary_inv, review_length]
 
-def build_input_data(sentences, labels, vocabulary):
+def build_input_data(reviews_padded, vocabulary):
     """
-    Maps sentencs and labels to vectors based on a vocabulary.
+    Maps sentences and labels to vectors based on a vocabulary.
     """
-    x = np.array([[vocabulary[word] for word in sentence] for sentence in sentences])
-    y = np.array(labels)
-    return [x, y]
+    reviews = np.array([[vocabulary[word] for word in review] for review in reviews_padded])
+    return reviews
 
-def load_data():
-    reviews, stars = get_reviews()
-    reviews_padded = pad_reviews(reviews)
-    vocabulary, vocabulary_inv = build_vocab(reviews_padded)
-    x, y = build_input_data(reviews_padded, stars, vocabulary)
-    return x, y, vocabulary, vocabulary_inv
+def round_rating(rating):
+    '''
+    Yelp's overall business ratings are in increments of 0.5 stars.
+    This returns a rating rounded to the nearest half star.
+    '''
+    return round(rating / 0.5) * 0.5
