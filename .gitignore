@@ -1,4 +1,7 @@
-dataset/*
+dataset/yelp_academic_dataset_business.json
+dataset/yelp_academic_dataset_review.json
+dataset/restaurant_reviews.json
+dataset/temp.json
 *.iml
 .DS_Store
 .idea/*
