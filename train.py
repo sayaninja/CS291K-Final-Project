@@ -4,15 +4,15 @@ import time
 from datetime import datetime
 
 # Hyper parameters
-num_validation = 39 # 1000
-num_test = 10 # 1000
+num_validation = 1000 # 1000
+num_test = 100 # 1000
 num_classes = 5
-num_epochs = 10 # 1000
+num_epochs = 5000 # 5000
 batch_size = 100 # 150
 embedding_size = 128
 filter_sizes = [3, 4, 5]
 num_filters = 128
-adam_opt = 1e-3
+learning_rate = 1e-3
 keep_prob = 0.5 # 0.5
 l2_reg_lambda = 0.5
 
@@ -72,7 +72,7 @@ with tf.Graph().as_default():
 
         # Setup training op
         global_step = tf.Variable(0, name="global_step", trainable=False)
-        optimizer = tf.train.AdamOptimizer(adam_opt)
+        optimizer = tf.train.AdamOptimizer(learning_rate)
         grads_and_vars = optimizer.compute_gradients(text_cnn.loss)
         train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
@@ -103,10 +103,9 @@ with tf.Graph().as_default():
             _, step, loss, accuracy = sess.run(
                     [train_op, global_step, text_cnn.loss, text_cnn.accuracy],
                     feed_dict=feed_dict)
-            if step % 10 == 0:
-                duration = time.time() - start_time
-                print("Step {}, loss: {:g}, acc: {:g}, dur: {:.2f} sec".format(
-                    step, loss, accuracy, duration))
+            duration = time.time() - start_time
+            print("Step {}, loss: {:g}, acc: {:g}, dur: {:.2f} sec".format(
+                step, loss, accuracy, duration))
 
 
         # Start the training loop
