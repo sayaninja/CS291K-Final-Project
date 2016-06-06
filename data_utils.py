@@ -6,7 +6,7 @@ import numpy as np
 
 RESTAURANTS_OUTPUT_FILE = "./dataset/restaurants.json"
 REVIEWS_OUTPUT_FILE = "./dataset/reviews.json"
-filename = "./dataset/restaurant_reviews.json"
+filename = "./dataset/temp.json"
 
 def get_business_ids():
     '''

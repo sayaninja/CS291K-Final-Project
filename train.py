@@ -7,7 +7,7 @@ from datetime import datetime
 num_validation = 1000 # 1000
 num_test = 100 # 1000
 num_classes = 5
-num_epochs = 5000 # 5000
+num_epochs = 1000 # 5000
 batch_size = 100 # 150
 embedding_size = 128
 filter_sizes = [3, 4, 5]
