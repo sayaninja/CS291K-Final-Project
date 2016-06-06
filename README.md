@@ -1,3 +1,6 @@
+Check out the GitHub repository here:
+https://github.com/zhansaya19/CS291K-Final-Project
+
 # Yelp Review Classification
 Yelp has an ongoing data mining challenge where they have provided datasets on businesses, reviews, users, check-ins, and tips. We are only interested in features of the first two datasets for now: businesses and user reviews. Each dataset is nicely formatted in JSON, rich in features, and composed of thousands of records. In this project, we developed a convolutional neural network to predict star ratings of individual text reviews, as well as overall restaurant ratings.
 
